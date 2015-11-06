@@ -41,7 +41,6 @@ DEFAULT_LOGGING = {
         },
         'django.request.runserver': {
             'level': 'INFO',
-            'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
             'formatter': 'django.request.runserver',
         },
