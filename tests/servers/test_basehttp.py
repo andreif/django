@@ -4,7 +4,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.core.servers.basehttp import WSGIRequestHandler
 from django.test import SimpleTestCase
 from django.test.client import RequestFactory
-from django.test.utils import captured_stderr
+from django.test.utils import captured_stderr, patch_logger
 
 
 class Stub(object):
@@ -19,9 +19,9 @@ class WSGIRequestHandlerTestCase(SimpleTestCase):
         request.makefile = lambda *args, **kwargs: BytesIO()
         handler = WSGIRequestHandler(request, '192.168.0.2', None)
 
-        with captured_stderr() as stderr:
+        with patch_logger('django.request.runserver', 'info') as messages:
             handler.log_message('GET %s %s', 'A', 'B')
-        self.assertIn('] GET A B', stderr.getvalue())
+        self.assertIn('] GET A B', messages[0])
 
     def test_https(self):
         request = WSGIRequest(RequestFactory().get('/').environ)
@@ -29,13 +29,13 @@ class WSGIRequestHandlerTestCase(SimpleTestCase):
 
         handler = WSGIRequestHandler(request, '192.168.0.2', None)
 
-        with captured_stderr() as stderr:
+        with patch_logger('django.request.runserver', 'info') as messages:
             handler.log_message("GET %s %s", str('\x16\x03'), "4")
-            self.assertIn(
-                "You're accessing the development server over HTTPS, "
-                "but it only supports HTTP.",
-                stderr.getvalue()
-            )
+        self.assertIn(
+            "You're accessing the development server over HTTPS, "
+            "but it only supports HTTP.",
+            messages[0]
+        )
 
     def test_strips_underscore_headers(self):
         """WSGIRequestHandler ignores headers containing underscores.
