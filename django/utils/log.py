@@ -57,7 +57,7 @@ DEFAULT_LOGGING = {
         },
         'django.request.runserver': {
             'handlers': ['django.request.runserver'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': False,
         },
         'py.warnings': {
