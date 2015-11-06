@@ -100,6 +100,14 @@ class WSGIRequestHandler(simple_server.WSGIRequestHandler, object):
         return self.client_address[0]
 
     def log_message(self, format, *args):
+        if args[1][0] == '4':
+            # 0x16 = Handshake, 0x03 = SSL 3.0 or TLS 1.x
+            if args[0].startswith(str('\x16\x03')):
+                msg = ("You're accessing the development server over HTTPS, "
+                    "but it only supports HTTP.\n")
+                logger.info(msg)
+                return
+
         logger.info("[%s] %s" % (self.log_date_time_string(), format), *args)
 
     def get_environ(self):

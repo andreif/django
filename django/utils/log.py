@@ -181,26 +181,25 @@ class RunserverFormatter(logging.Formatter):
         args = record.args
         msg = record.msg
 
-        if args[1][0] == '2':
-            # Put 2XX first, since it should be the common case
-            msg = self.style.HTTP_SUCCESS(msg)
-        elif args[1][0] == '1':
-            msg = self.style.HTTP_INFO(msg)
-        elif args[1] == '304':
-            msg = self.style.HTTP_NOT_MODIFIED(msg)
-        elif args[1][0] == '3':
-            msg = self.style.HTTP_REDIRECT(msg)
-        elif args[1] == '404':
-            msg = self.style.HTTP_NOT_FOUND(msg)
-        elif args[1][0] == '4':
-            # 0x16 = Handshake, 0x03 = SSL 3.0 or TLS 1.x
-            if args[0].startswith(str('\x16\x03')):
-                msg = ("You're accessing the development server over HTTPS, "
-                    "but it only supports HTTP.\n")
+        if len(args) == 0:
             msg = self.style.HTTP_BAD_REQUEST(msg)
         else:
-            # Any 5XX, or any other response
-            msg = self.style.HTTP_SERVER_ERROR(msg)
+            if args[1][0] == '2':
+                # Put 2XX first, since it should be the common case
+                msg = self.style.HTTP_SUCCESS(msg)
+            elif args[1][0] == '1':
+                msg = self.style.HTTP_INFO(msg)
+            elif args[1] == '304':
+                msg = self.style.HTTP_NOT_MODIFIED(msg)
+            elif args[1][0] == '3':
+                msg = self.style.HTTP_REDIRECT(msg)
+            elif args[1] == '404':
+                msg = self.style.HTTP_NOT_FOUND(msg)
+            elif args[1][0] == '4':
+                msg = self.style.HTTP_BAD_REQUEST(msg)
+            else:
+                # Any 5XX, or any other response
+                msg = self.style.HTTP_SERVER_ERROR(msg)
 
         record.msg = msg
         return super(RunserverFormatter, self).format(record)
