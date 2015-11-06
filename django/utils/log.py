@@ -9,6 +9,7 @@ from copy import copy
 from django.conf import settings
 from django.core import mail
 from django.core.mail import get_connection
+from django.core.management.color import color_style
 from django.utils.deprecation import RemovedInNextVersionWarning
 from django.utils.module_loading import import_string
 from django.views.debug import ExceptionReporter
@@ -27,11 +28,22 @@ DEFAULT_LOGGING = {
             '()': 'django.utils.log.RequireDebugTrue',
         },
     },
+    'formatters': {
+        'django.request.runserver': {
+            '()': 'django.utils.log.RunserverFormatter'
+        }
+    },
     'handlers': {
         'console': {
             'level': 'INFO',
             'filters': ['require_debug_true'],
             'class': 'logging.StreamHandler',
+        },
+        'django.request.runserver': {
+            'level': 'INFO',
+            'filters': ['require_debug_true'],
+            'class': 'logging.StreamHandler',
+            'formatter': 'django.request.runserver',
         },
         'mail_admins': {
             'level': 'ERROR',
@@ -43,6 +55,11 @@ DEFAULT_LOGGING = {
         'django': {
             'handlers': ['console', 'mail_admins'],
             'level': 'INFO',
+        },
+        'django.request.runserver': {
+            'handlers': ['django.request.runserver'],
+            'level': 'DEBUG',
+            'propagate': False,
         },
         'py.warnings': {
             'handlers': ['console'],
@@ -154,3 +171,37 @@ class RequireDebugFalse(logging.Filter):
 class RequireDebugTrue(logging.Filter):
     def filter(self, record):
         return settings.DEBUG
+
+
+class RunserverFormatter(logging.Formatter):
+    def __init__(self, *args, **kwargs):
+        self.style = color_style()
+        super(RunserverFormatter, self).__init__(*args, **kwargs)
+
+    def format(self, record):
+        args = record.args
+        msg = record.msg
+
+        if args[1][0] == '2':
+            # Put 2XX first, since it should be the common case
+            msg = self.style.HTTP_SUCCESS(msg)
+        elif args[1][0] == '1':
+            msg = self.style.HTTP_INFO(msg)
+        elif args[1] == '304':
+            msg = self.style.HTTP_NOT_MODIFIED(msg)
+        elif args[1][0] == '3':
+            msg = self.style.HTTP_REDIRECT(msg)
+        elif args[1] == '404':
+            msg = self.style.HTTP_NOT_FOUND(msg)
+        elif args[1][0] == '4':
+            # 0x16 = Handshake, 0x03 = SSL 3.0 or TLS 1.x
+            if args[0].startswith(str('\x16\x03')):
+                msg = ("You're accessing the development server over HTTPS, "
+                    "but it only supports HTTP.\n")
+            msg = self.style.HTTP_BAD_REQUEST(msg)
+        else:
+            # Any 5XX, or any other response
+            msg = self.style.HTTP_SERVER_ERROR(msg)
+
+        record.msg = msg
+        return super(RunserverFormatter, self).format(record)
