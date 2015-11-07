@@ -108,8 +108,14 @@ class WSGIRequestHandler(simple_server.WSGIRequestHandler, object):
                 logger.error(msg)
                 return
 
-        if args[1][:3].isdigit() and int(args[1][0]) >= 400:
-            level = logger.error
+        if args[1][:3].isdigit():
+            status_code = int(args[1][0])
+            if status_code >= 500:
+                level = logger.error
+            elif status_code >= 400:
+                level = logger.warning
+            else:
+                level = logger.info
         else:
             level = logger.info
 
