@@ -30,7 +30,7 @@ DEFAULT_LOGGING = {
     },
     'formatters': {
         'django.request.runserver': {
-            '()': 'django.utils.log.RunserverFormatter'
+            '()': 'django.utils.log.RunserverFormatter',
         }
     },
     'handlers': {
