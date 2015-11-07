@@ -105,10 +105,15 @@ class WSGIRequestHandler(simple_server.WSGIRequestHandler, object):
             if args[0].startswith(str('\x16\x03')):
                 msg = ("You're accessing the development server over HTTPS, "
                     "but it only supports HTTP.\n")
-                logger.info(msg)
+                logger.error(msg)
                 return
 
-        logger.info("[%s] %s" % (self.log_date_time_string(), format), *args)
+        if args[1][:3].isdigit() and int(args[1][0]) >= 400:
+            level = logger.error
+        else:
+            level = logger.info
+
+        level("[%s] %s" % (self.log_date_time_string(), format), *args)
 
     def get_environ(self):
         # Strip all headers with underscores in the name before constructing
