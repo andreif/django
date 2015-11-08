@@ -31,6 +31,7 @@ DEFAULT_LOGGING = {
     'formatters': {
         'django.request.runserver': {
             '()': 'django.utils.log.RunserverFormatter',
+            'format': '[%(servertime)s] %(message)s',
         }
     },
     'handlers': {

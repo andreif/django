@@ -21,7 +21,7 @@ class WSGIRequestHandlerTestCase(SimpleTestCase):
 
         with patch_logger('django.request.runserver', 'info') as messages:
             handler.log_message('GET %s %s', 'A', 'B')
-        self.assertIn('] GET A B', messages[0])
+        self.assertIn('GET A B', messages[0])
 
     def test_https(self):
         request = WSGIRequest(RequestFactory().get('/').environ)
