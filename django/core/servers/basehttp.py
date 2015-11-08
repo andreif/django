@@ -119,7 +119,9 @@ class WSGIRequestHandler(simple_server.WSGIRequestHandler, object):
         else:
             level = logger.info
 
-        level("[%s] %s" % (self.log_date_time_string(), format), *args)
+        level(format, *args, extra={
+            'servertime': self.log_date_time_string(),
+        })
 
     def get_environ(self):
         # Strip all headers with underscores in the name before constructing
