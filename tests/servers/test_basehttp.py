@@ -19,9 +19,16 @@ class WSGIRequestHandlerTestCase(SimpleTestCase):
         request.makefile = lambda *args, **kwargs: BytesIO()
         handler = WSGIRequestHandler(request, '192.168.0.2', None)
 
-        with patch_logger('django.request.runserver', 'info') as messages:
-            handler.log_message('GET %s %s', 'A', 'B')
-        self.assertIn('] GET A B', messages[0])
+        level_codes = {
+            'info': [200, 304],
+            'warning': [400, 404],
+            'error': [500, 503],
+        }
+        for lvl, codes in level_codes.items():
+            for code in codes:
+                with patch_logger('django.request.runserver', lvl) as messages:
+                    handler.log_message('GET %s %s', 'A', str(code))
+                self.assertIn('GET A %d' % code, messages[0])
 
     def test_https(self):
         request = WSGIRequest(RequestFactory().get('/').environ)
