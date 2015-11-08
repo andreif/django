@@ -104,12 +104,12 @@ class WSGIRequestHandler(simple_server.WSGIRequestHandler, object):
             # 0x16 = Handshake, 0x03 = SSL 3.0 or TLS 1.x
             if args[0].startswith(str('\x16\x03')):
                 msg = ("You're accessing the development server over HTTPS, "
-                    "but it only supports HTTP.\n")
+                       "but it only supports HTTP.\n")
                 logger.error(msg)
                 return
 
-        if args[1][:3].isdigit():
-            status_code = int(args[1][0])
+        if args[1].isdigit() and len(args[1]) == 3:
+            status_code = int(args[1])
             if status_code >= 500:
                 level = logger.error
             elif status_code >= 400:
