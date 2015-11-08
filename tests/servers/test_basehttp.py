@@ -19,16 +19,28 @@ class WSGIRequestHandlerTestCase(SimpleTestCase):
         request.makefile = lambda *args, **kwargs: BytesIO()
         handler = WSGIRequestHandler(request, '192.168.0.2', None)
 
-        level_codes = {
-            'info': [200, 304],
-            'warning': [400, 404],
+        level_status_codes = {
+            'info': [200, 301, 304],
+            'warning': [400, 403, 404],
             'error': [500, 503],
         }
-        for lvl, codes in level_codes.items():
-            for code in codes:
-                with patch_logger('django.request.runserver', lvl) as messages:
-                    handler.log_message('GET %s %s', 'A', str(code))
-                self.assertIn('GET A %d' % code, messages[0])
+
+        def _log_level_code(level, status_code):
+            with patch_logger('django.request.runserver', level) as messages:
+                handler.log_message('GET %s %s', 'A', str(status_code))
+            return messages
+
+        for level, status_codes in level_status_codes.items():
+            for status_code in status_codes:
+                # Test if the correct level gets the message
+                messages = _log_level_code(level, status_code)
+                self.assertIn('GET A %d' % status_code, messages[0])
+
+                # Test if incorrect levels have no messages
+                for wrong_level in level_status_codes.keys():
+                    if wrong_level != level:
+                        messages = _log_level_code(wrong_level, status_code)
+                        self.assertEqual(len(messages), 0)
 
     def test_https(self):
         request = WSGIRequest(RequestFactory().get('/').environ)
