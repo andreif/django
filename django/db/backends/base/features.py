@@ -64,6 +64,9 @@ class BaseDatabaseFeatures(object):
     # Is there a true datatype for timedeltas?
     has_native_duration_field = False
 
+    # Is there a true datatype for enum?
+    has_native_enum_field = False
+
     # Does the database driver support timedeltas as arguments?
     # This is only relevant when there is a native duration field.
     # Specifically, there is a bug with cx_Oracle:
